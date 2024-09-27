@@ -2,9 +2,9 @@
 
 ## Equipo de desarrollo
 
+-   Luciana Szwimer
 -   Alan Garber
 -   Nicolás Fishman
--   Luciana Szwimer
 
 ## Capturas
 
@@ -12,7 +12,7 @@
 
 ## Reglas de Juego / Instrucciones
 
-Se le reparten dos cartas a cada jugador y al dealer. El jugador puede pedir cartas hasta que se pase de 21 o decida plantarse. Luego, el dealer pide cartas hasta que se pase de 17. El objetivo es tener una mano con un valor lo más cercano a 21 sin pasarse.
+Se le reparten dos cartas al jugador y al dealer. El jugador puede pedir cartas hasta que se pase de 21 o decida plantarse. Luego, el dealer pide cartas hasta obtener 17 o mas. El objetivo es tener una mano con un valor lo más cercano a 21 sin pasarse. El que consiga tener 21 o el que esté mas cerca, gana.
 
 ### Puntajes de cartas
 
