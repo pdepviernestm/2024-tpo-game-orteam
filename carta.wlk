@@ -1,3 +1,9 @@
+object mazo {
+  method image() = "mazo.png"
+  
+  method position() = game.at(game.width() - 50, game.height() - 50)
+}
+
 class Carta {
   const palo
   const numero
