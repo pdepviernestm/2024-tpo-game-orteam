@@ -1,3 +1,5 @@
+import wollok.game.*
+
 object mazo {
   method image() = "mazo.png"
   
