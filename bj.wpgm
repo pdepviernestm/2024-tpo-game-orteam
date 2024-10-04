@@ -1,0 +1,18 @@
+import wollok.game.*
+import carta.*
+
+object juego {
+  const carta = new Carta(palo = "corazon", numero = 1)
+  
+  method iniciar() {
+    game.start()
+    game.height(100)
+    game.width(140)
+    game.boardGround("fondo.png")
+    game.addVisual(carta)
+  }
+}
+
+program prueba {
+  juego.iniciar()
+}
