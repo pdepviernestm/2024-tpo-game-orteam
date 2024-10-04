@@ -2,15 +2,43 @@ import wollok.game.*
 import carta.*
 
 object juego {
-  const carta = new Carta(palo = "corazon", numero = 1)
+  const mazoCartas = []
+  const palos = ["corazon", "diamante", "pica", "trebol"]
+  const valores = new Dictionary()
+  
+  method generarValores() {
+    valores.put("as", 1)
+    valores.put("j", 10)
+    valores.put("q", 10)
+    valores.put("k", 10)
+    
+    (2 .. 10).forEach({ i => valores.put(i, i) })
+  }
+  
+  method agregarMazoAlGeneral() {
+    palos.forEach(
+      { palo => valores.keys().forEach(
+          { numero => mazoCartas.add(new Carta(palo = palo, numero = numero)) }
+        ) }
+    )
+  }
+  
+  method generarMazo() {
+    8.times({ _ => self.agregarMazoAlGeneral() })
+    
+    mazoCartas.randomize()
+    console.println(mazoCartas.first().getPath())
+  }
   
   method iniciar() {
     game.start()
     game.height(100)
     game.width(140)
-    game.boardGround("fondo.png")
-    game.addVisual(carta)
-    game.addVisual(mazo)
+    game.boardGround("fondo.png") // game.addVisual(carta)
+    self.generarValores()
+    self.generarMazo()
+    
+    game.addVisual(mazoVisual)
   }
 }
 
