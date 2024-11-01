@@ -1,0 +1,84 @@
+import persona.*
+import textos.*
+import wollok.game.*
+import carta.*
+
+object juego {
+  var property mazoCartas = []
+  const palos = ["corazon", "diamante", "pica", "trebol"]
+  const valores = new Dictionary()
+  const property crupier = new Crupier(posicion = new Posicion(x = 50, y = 75))
+  const property jugador = new Jugador(posicion = new Posicion(x = 50, y = 25))
+  var property turnoJugador = 0
+  var property turnoCrupier = false
+  
+  method repartirCarta(persona) {
+    persona.sacarCarta(mazoCartas)
+    mazoCartas = mazoCartas.drop(1)
+  }
+  
+  method repartirCartaCrupier() {
+    self.repartirCarta(crupier)
+  }
+  
+  method repartirCartaJugador() {
+    self.repartirCarta(jugador)
+  }
+  
+  method generarValores() {
+    valores.put("as", 1)
+    valores.put("j", 10)
+    valores.put("q", 10)
+    valores.put("k", 10)
+    
+    (2 .. 10).forEach({ i => valores.put(i, i) })
+  }
+  
+  method agregarMazoAlGeneral() {
+    palos.forEach(
+      { palo => valores.keys().forEach(
+          { numero => mazoCartas.add(new Carta(palo = palo, numero = numero)) }
+        ) }
+    )
+  }
+  
+  method generarMazo() {
+    8.times({ _ => self.agregarMazoAlGeneral() })
+    
+    mazoCartas.randomize()
+    console.println(mazoCartas.first().getPath())
+  }
+  
+  method mostrarDineroDisponible() {
+    textoDineroDisponibleNumeros.text(jugador.dinero())
+    game.addVisual(textoDineroDisponibleNumeros)
+  }
+  
+  method mostrarApuesta() {
+    textoApuesta.text(jugador.apuesta())
+    game.addVisual(textoApuesta)
+  }
+  
+  method empezarRonda() {
+    // primero tienen que apostar todos los jugadores.
+    self.mostrarDineroDisponible()
+    self.mostrarApuesta()
+  }
+  
+  method iniciar() {
+    game.start()
+    game.height(100)
+    game.width(140)
+    game.boardGround("fondo.png") // game.addVisual(carta)
+    self.generarValores()
+    self.generarMazo()
+    
+    game.addVisual(mazoVisual)
+  }
+}
+
+program prueba {
+  juego.iniciar()
+  
+  juego.empezarRonda()
+}
