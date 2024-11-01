@@ -7,6 +7,7 @@ object mazoVisual {
 }
 
 class Carta {
+  var position = game.center()
   const palo
   const property numero
   
@@ -14,5 +15,9 @@ class Carta {
   
   method image() = self.getPath() // method text() = self.getPath()
   
-  method position() = game.center()
+  method position() = position
+  
+  method position(newPos) {
+    position = newPos
+  }
 }

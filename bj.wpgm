@@ -1,10 +1,29 @@
+import persona.*
+import textos.*
 import wollok.game.*
 import carta.*
 
 object juego {
-  const mazoCartas = []
+  var property mazoCartas = []
   const palos = ["corazon", "diamante", "pica", "trebol"]
   const valores = new Dictionary()
+  const property crupier = new Crupier(posicion = new Posicion(x = 50, y = 75))
+  const property jugador = new Jugador(posicion = new Posicion(x = 50, y = 25))
+  var property turnoJugador = 0
+  var property turnoCrupier = false
+  
+  method repartirCarta(persona) {
+    persona.sacarCarta(mazoCartas)
+    mazoCartas = mazoCartas.drop(1)
+  }
+  
+  method repartirCartaCrupier() {
+    self.repartirCarta(crupier)
+  }
+  
+  method repartirCartaJugador() {
+    self.repartirCarta(jugador)
+  }
   
   method generarValores() {
     valores.put("as", 1)
@@ -30,6 +49,22 @@ object juego {
     console.println(mazoCartas.first().getPath())
   }
   
+  method mostrarDineroDisponible() {
+    textoDineroDisponibleNumeros.text(jugador.dinero())
+    game.addVisual(textoDineroDisponibleNumeros)
+  }
+  
+  method mostrarApuesta() {
+    textoApuesta.text(jugador.apuesta())
+    game.addVisual(textoApuesta)
+  }
+  
+  method empezarRonda() {
+    // primero tienen que apostar todos los jugadores.
+    self.mostrarDineroDisponible()
+    self.mostrarApuesta()
+  }
+  
   method iniciar() {
     game.start()
     game.height(100)
@@ -44,4 +79,6 @@ object juego {
 
 program prueba {
   juego.iniciar()
+  
+  juego.empezarRonda()
 }
