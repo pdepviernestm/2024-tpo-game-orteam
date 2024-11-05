@@ -75,6 +75,7 @@ object juego {
     game.boardGround("fondo.png") // game.addVisual(carta)
     game.addVisual(textoDineroDispoible)
     game.addVisual(textoApuesta)
+    game.addVisual(textoBotones)
     self.generarValores()
     self.generarMazo()
     

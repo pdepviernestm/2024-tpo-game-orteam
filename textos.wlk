@@ -1,3 +1,9 @@
+object textoBotones {
+  method image() = "botones.png"
+  
+  method position() = game.at(game.width() - 25, game.height() / 2)
+}
+
 object textoDineroDispoible {
   method image() = "dinerodisponible.png"
   
