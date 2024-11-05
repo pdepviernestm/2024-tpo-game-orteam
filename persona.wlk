@@ -30,9 +30,18 @@ class Jugador inherits Persona {
   var property splits = maxSplits
   var property apuesta = 0
   
-  method apostar(cantidad) {
+  method aumentarApuesta(cantidad) {
+    if ((cantidad < 0) && ((apuesta + cantidad) < 0)) {
+      return
+    }
+    
+    if ((cantidad > 0) && ((dinero - cantidad) < 0)) {
+      return
+    }
+    
     dinero -= cantidad
     apuesta += cantidad
+    return
   }
 }
 

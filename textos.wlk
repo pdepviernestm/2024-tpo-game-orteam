@@ -4,28 +4,34 @@ object textoDineroDispoible {
   method position() = game.at(game.center().x() - 35, 5)
 }
 
+object textoApuesta {
+  method image() = "apuesta.png"
+  
+  method position() = game.at(5, game.height() / 2)
+}
+
 object textoDineroDisponibleNumeros {
+  const numeros = new TextoNumero()
   var property position = game.at(63, 7)
-  const property visuals = []
   
   method position(x, y) = game.at(x, y)
   
   method text(dinero) {
     // add a visual for each digit of the number (assume whole)
-    game.addVisual(textoDineroDispoible)
-    textoNumero.text(dinero, position, visuals)
+    numeros.text(dinero, position)
   }
 }
 
-object textoApuesta {
-  var property text = ""
-  var property textColor = "#ffffff"
+object textoApuestaNumeros {
+  var property position = game.at(17, 52)
+  const numeros = new TextoNumero()
   
-  method text(apuesta) {
-    text = "Apuesta : $" + apuesta.toString()
+  method position(x, y) = game.at(x, y)
+  
+  method text(dinero) {
+    // add a visual for each digit of the number (assume whole)
+    numeros.text(dinero, position)
   }
-  
-  method position() = game.at(5, game.height() / 2)
 }
 
 class Numero {
@@ -37,9 +43,11 @@ class Numero {
   method image() = ("texto_" + digito) + ".png"
 }
 
-object textoNumero {
-  method text(numero, position, visuals) {
-    // add a visual for each digit of the number (assume whole)
+class TextoNumero {
+  const property visuals = []
+  
+  method text(numero, position) {
+    self.removeAllVisuals()
     const numeroString = numero.toString()
     
     numeroString.length().times(
@@ -56,7 +64,7 @@ object textoNumero {
     )
   }
   
-  method removeAllVisuals(visuals) {
+  method removeAllVisuals() {
     visuals.forEach({ visual => game.removeVisual(visual) })
   }
 }

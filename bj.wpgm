@@ -46,21 +46,24 @@ object juego {
     8.times({ _ => self.agregarMazoAlGeneral() })
     
     mazoCartas.randomize()
-    console.println(mazoCartas.first().getPath())
   }
   
   method mostrarDineroDisponible() {
     textoDineroDisponibleNumeros.text(jugador.dinero())
-    game.addVisual(textoDineroDisponibleNumeros)
   }
   
   method mostrarApuesta() {
-    textoApuesta.text(jugador.apuesta())
-    game.addVisual(textoApuesta)
+    textoApuestaNumeros.text(jugador.apuesta())
   }
   
   method empezarRonda() {
     // primero tienen que apostar todos los jugadores.
+    self.mostrarDineroDisponible()
+    self.mostrarApuesta()
+  }
+  
+  method modificarApuesta(cantidad) {
+    jugador.aumentarApuesta(cantidad)
     self.mostrarDineroDisponible()
     self.mostrarApuesta()
   }
@@ -70,8 +73,14 @@ object juego {
     game.height(100)
     game.width(140)
     game.boardGround("fondo.png") // game.addVisual(carta)
+    game.addVisual(textoDineroDispoible)
+    game.addVisual(textoApuesta)
     self.generarValores()
     self.generarMazo()
+    
+    
+    keyboard.up().onPressDo({ self.modificarApuesta(5) })
+    keyboard.down().onPressDo({ self.modificarApuesta(-5) })
     
     game.addVisual(mazoVisual)
   }
