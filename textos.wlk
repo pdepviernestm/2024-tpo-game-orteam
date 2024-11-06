@@ -1,63 +1,3 @@
-object textoBotones {
-  method image() = "botones.png"
-  
-  method position() = game.at(game.width() - 25, game.height() / 2)
-}
-
-object textoDineroDispoible {
-  method image() = "dinerodisponible.png"
-  
-  method position() = game.at(game.center().x() - 35, 5)
-}
-
-object textoApuesta {
-  method image() = "apuesta.png"
-  
-  method position() = game.at(5, game.height() / 2)
-}
-
-object textoPuntaje {
-  method image() = "puntaje.png"
-  
-  method position() = game.at(20, 25)
-}
-
-object textoPuntajeNumeros {
-  const numeros = new TextoNumero()
-  var property position = game.at(32, 25)
-  
-  method position(x, y) = game.at(x, y)
-  
-  method text(puntaje) {
-    // add a visual for each digit of the number (assume whole)
-    numeros.text(puntaje, position)
-  }
-}
-
-object textoDineroDisponibleNumeros {
-  const numeros = new TextoNumero()
-  var property position = game.at(63, 7)
-  
-  method position(x, y) = game.at(x, y)
-  
-  method text(dinero) {
-    // add a visual for each digit of the number (assume whole)
-    numeros.text(dinero, position)
-  }
-}
-
-object textoApuestaNumeros {
-  var property position = game.at(17, 52)
-  const numeros = new TextoNumero()
-  
-  method position(x, y) = game.at(x, y)
-  
-  method text(dinero) {
-    // add a visual for each digit of the number (assume whole)
-    numeros.text(dinero, position)
-  }
-}
-
 class Numero {
   var property digito
   var property position
@@ -67,10 +7,41 @@ class Numero {
   method image() = ("texto_" + digito) + ".png"
 }
 
+class ImagenClase {
+  const image
+  const property position
+  
+  method image() = image
+}
+
+class TextoConNumeros {
+  const property positionTexto
+  var property image
+  const property positionNumeros
+  const numeros = new TextoNumero(position = positionNumeros)
+  const imagen = new ImagenClase(image = image, position = positionTexto)
+  
+  method setNumero(dinero) {
+    game.removeVisual(imagen)
+    game.addVisual(imagen)
+    
+    numeros.text(dinero)
+  }
+  
+  method removeVisualNumeros() {
+    numeros.removeAllVisuals()
+  }
+  
+  method addVisualTitulo() {
+    game.addVisual(imagen)
+  }
+}
+
 class TextoNumero {
   const property visuals = []
+  const position
   
-  method text(numero, position) {
+  method text(numero) {
     self.removeAllVisuals()
     const numeroString = numero.toString()
     

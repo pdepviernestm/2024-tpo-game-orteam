@@ -33,7 +33,6 @@ class Persona {
       { carta =>
         const valor = carta.numero()
         if (valor == "as") {
-          console.println("Encontre un as")
           cantidadDeAses += 1
         } else {
           const puntajeCarta = valores.basicGet(valor)
@@ -52,6 +51,11 @@ class Persona {
     )
     
     return puntaje
+  }
+  
+  method limpiarMano() {
+    mano.forEach({ carta => game.removeVisual(carta) })
+    mano.clear()
   }
 }
 

@@ -12,6 +12,26 @@ object juego {
   var property turnoJugador = 0
   var property turnoCrupier = false
   var property estaEnJuego = false
+  var property puedeJugarJugador = false
+  const textoApuesta = new TextoConNumeros(
+    positionTexto = game.at(5, 50),
+    positionNumeros = game.at(17, 52),
+    image = "apuesta.png"
+  )
+  const textoPuntaje = new TextoConNumeros(
+    positionTexto = game.at(20, 25),
+    positionNumeros = game.at(32, 25),
+    image = "puntaje.png"
+  )
+  const textoDineroDisponible = new TextoConNumeros(
+    positionTexto = game.at(35, 5),
+    positionNumeros = game.at(63, 7),
+    image = "dinerodisponible.png"
+  )
+  const textoBotones = new ImagenClase(
+    position = game.at(115, 50),
+    image = "botones.png"
+  )
   
   method repartirCarta(persona) {
     persona.sacarCarta(mazoCartas)
@@ -24,7 +44,7 @@ object juego {
   
   method repartirCartaJugador() {
     self.repartirCarta(jugador)
-    textoPuntajeNumeros.text(jugador.puntaje())
+    textoPuntaje.setNumero(jugador.puntaje())
   }
   
   method generarValores() {
@@ -51,11 +71,11 @@ object juego {
   }
   
   method mostrarDineroDisponible() {
-    textoDineroDisponibleNumeros.text(jugador.dinero())
+    textoDineroDisponible.setNumero(jugador.dinero())
   }
   
   method mostrarApuesta() {
-    textoApuestaNumeros.text(jugador.apuesta())
+    textoApuesta.setNumero(jugador.apuesta())
   }
   
   method empezarRonda() {
@@ -74,16 +94,45 @@ object juego {
     return
   }
   
+  method hitCard() {
+    if (!puedeJugarJugador) {
+      return
+    }
+    self.repartirCartaJugador()
+    self.chequearMano()
+    return
+  }
+  
+  method chequearMano() {
+    if (jugador.puntaje() > 21) {
+      console.println("Perdiste") // REEMPLAZAR POR UNA VISUAL
+      game.schedule(
+        2000,
+        { 
+          jugador.apuesta(0)
+          game.removeVisual(textoPuntaje)
+          textoPuntaje.removeVisual()
+          jugador.limpiarMano()
+          self.mostrarDineroDisponible()
+          self.mostrarApuesta()
+          estaEnJuego = false
+          puedeJugarJugador = false
+        }
+      )
+    }
+  }
+  
   method iniciarRonda() {
     if ((jugador.apuesta() == 0) || estaEnJuego) {
       return
     }
     estaEnJuego = true
     game.addVisual(textoPuntaje)
-    textoPuntajeNumeros.text(jugador.puntaje())
+    textoPuntaje.setNumero(jugador.puntaje())
     game.schedule(1000, { self.repartirCartaJugador() })
     game.schedule(2000, { self.repartirCartaCrupier() })
     game.schedule(3000, { self.repartirCartaJugador() })
+    puedeJugarJugador = true
     
     return
   }
@@ -93,8 +142,8 @@ object juego {
     game.height(100)
     game.width(140)
     game.boardGround("fondo.png") // game.addVisual(carta)
-    game.addVisual(textoDineroDispoible)
-    game.addVisual(textoApuesta)
+    textoDineroDisponible.addVisualTitulo()
+    textoApuesta.addVisualTitulo()
     game.addVisual(textoBotones)
     self.generarValores()
     self.generarMazo()
@@ -103,6 +152,7 @@ object juego {
     keyboard.up().onPressDo({ self.modificarApuesta(5) })
     keyboard.down().onPressDo({ self.modificarApuesta(-5) })
     keyboard.enter().onPressDo({ self.iniciarRonda() })
+    keyboard.h().onPressDo({ self.hitCard() })
     
     game.addVisual(mazoVisual)
   }
