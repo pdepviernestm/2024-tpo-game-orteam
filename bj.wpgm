@@ -11,6 +11,7 @@ object juego {
   const property jugador = new Jugador(posicion = new Posicion(x = 50, y = 25))
   var property turnoJugador = 0
   var property turnoCrupier = false
+  var property estaEnJuego = false
   
   method repartirCarta(persona) {
     persona.sacarCarta(mazoCartas)
@@ -63,9 +64,27 @@ object juego {
   }
   
   method modificarApuesta(cantidad) {
+    if (estaEnJuego) {
+      return
+    }
     jugador.aumentarApuesta(cantidad)
     self.mostrarDineroDisponible()
     self.mostrarApuesta()
+    return
+  }
+  
+  method iniciarRonda() {
+    if (jugador.apuesta() == 0) {
+      return
+    }
+    estaEnJuego = true
+    game.schedule(1000, { self.repartirCartaJugador() })
+    game.schedule(2000, { self.repartirCartaCrupier() })
+    game.schedule(3000, { self.repartirCartaJugador() })
+    
+    
+    
+    return
   }
   
   method iniciar() {
@@ -82,6 +101,7 @@ object juego {
     
     keyboard.up().onPressDo({ self.modificarApuesta(5) })
     keyboard.down().onPressDo({ self.modificarApuesta(-5) })
+    keyboard.enter().onPressDo({ self.iniciarRonda() })
     
     game.addVisual(mazoVisual)
   }
