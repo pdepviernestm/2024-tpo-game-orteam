@@ -16,6 +16,24 @@ object textoApuesta {
   method position() = game.at(5, game.height() / 2)
 }
 
+object textoPuntaje {
+  method image() = "puntaje.png"
+  
+  method position() = game.at(20, 25)
+}
+
+object textoPuntajeNumeros {
+  const numeros = new TextoNumero()
+  var property position = game.at(32, 25)
+  
+  method position(x, y) = game.at(x, y)
+  
+  method text(puntaje) {
+    // add a visual for each digit of the number (assume whole)
+    numeros.text(puntaje, position)
+  }
+}
+
 object textoDineroDisponibleNumeros {
   const numeros = new TextoNumero()
   var property position = game.at(63, 7)

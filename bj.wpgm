@@ -2,11 +2,11 @@ import persona.*
 import textos.*
 import wollok.game.*
 import carta.*
+import constants.*
 
 object juego {
   var property mazoCartas = []
   const palos = ["corazon", "diamante", "pica", "trebol"]
-  const valores = new Dictionary()
   const property crupier = new Crupier(posicion = new Posicion(x = 50, y = 75))
   const property jugador = new Jugador(posicion = new Posicion(x = 50, y = 25))
   var property turnoJugador = 0
@@ -24,6 +24,7 @@ object juego {
   
   method repartirCartaJugador() {
     self.repartirCarta(jugador)
+    textoPuntajeNumeros.text(jugador.puntaje())
   }
   
   method generarValores() {
@@ -74,15 +75,15 @@ object juego {
   }
   
   method iniciarRonda() {
-    if (jugador.apuesta() == 0) {
+    if ((jugador.apuesta() == 0) || estaEnJuego) {
       return
     }
     estaEnJuego = true
+    game.addVisual(textoPuntaje)
+    textoPuntajeNumeros.text(jugador.puntaje())
     game.schedule(1000, { self.repartirCartaJugador() })
     game.schedule(2000, { self.repartirCartaCrupier() })
     game.schedule(3000, { self.repartirCartaJugador() })
-    
-    
     
     return
   }

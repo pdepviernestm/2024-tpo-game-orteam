@@ -1,5 +1,7 @@
 // La persona tiene que tener una "mano" (array de cartas) y un metodo que en base al mazo general del juego, saque una carta y la agregue a su mano.
 // Persona.posicion es un atributo que indica la posicion de la persona en la mesa. ({x: 0, y: 0})
+import constants.*
+
 const maxSplits = 4
 
 class Posicion {
@@ -22,6 +24,34 @@ class Persona {
     carta.position(game.at(posicion.x() + (mano.size() * 12), posicion.y()))
     mano.add(carta)
     self.mostrarMano()
+  }
+  
+  method puntaje() {
+    var puntaje = 0
+    var cantidadDeAses = 0
+    mano.forEach(
+      { carta =>
+        const valor = carta.numero()
+        if (valor == "as") {
+          console.println("Encontre un as")
+          cantidadDeAses += 1
+        } else {
+          const puntajeCarta = valores.basicGet(valor)
+          
+          puntaje += puntajeCarta
+        }
+      }
+    )
+    
+    cantidadDeAses.times(
+      { _ => if ((puntaje + 11) <= 21) {
+          puntaje += 11
+        } else {
+          puntaje += 1
+        } }
+    )
+    
+    return puntaje
   }
 }
 
