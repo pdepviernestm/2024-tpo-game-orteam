@@ -77,6 +77,12 @@ class Jugador inherits Persona {
     apuesta += cantidad
     return
   }
+  
+  method ganarDinero(cantidad) {
+    dinero += cantidad
+  }
+  
+  method tieneBlackjack() = (mano.size() == 2) && (self.puntaje() == 21)
 }
 
 class Crupier inherits Persona {

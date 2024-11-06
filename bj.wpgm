@@ -18,9 +18,14 @@ object juego {
     positionNumeros = game.at(17, 52),
     image = "apuesta.png"
   )
-  const textoPuntaje = new TextoConNumeros(
+  const textoPuntajeJugador = new TextoConNumeros(
     positionTexto = game.at(20, 25),
     positionNumeros = game.at(32, 25),
+    image = "puntaje.png"
+  )
+  const textoPuntajeCrupier = new TextoConNumeros(
+    positionTexto = game.at(20, 75),
+    positionNumeros = game.at(32, 75),
     image = "puntaje.png"
   )
   const textoDineroDisponible = new TextoConNumeros(
@@ -40,11 +45,12 @@ object juego {
   
   method repartirCartaCrupier() {
     self.repartirCarta(crupier)
+    textoPuntajeCrupier.setNumero(crupier.puntaje())
   }
   
   method repartirCartaJugador() {
     self.repartirCarta(jugador)
-    textoPuntaje.setNumero(jugador.puntaje())
+    textoPuntajeJugador.setNumero(jugador.puntaje())
   }
   
   method generarValores() {
@@ -98,28 +104,105 @@ object juego {
     if (!puedeJugarJugador) {
       return
     }
+    puedeJugarJugador = false
     self.repartirCartaJugador()
     self.chequearMano()
+    puedeJugarJugador = true
+    return
+  }
+  
+  method standCard() {
+    if (!puedeJugarJugador) {
+      return
+    }
+    puedeJugarJugador = false
+    
+    game.schedule(6500, { self.chequearMano() })
+    (1 .. 6).forEach(
+      { i => game.schedule(
+          (i + 1) * 1000,
+          { if (crupier.puntaje() < 17) self.repartirCartaCrupier() }
+        ) }
+    )
+    
+    
+    
     return
   }
   
   method chequearMano() {
     if (jugador.puntaje() > 21) {
-      console.println("Perdiste") // REEMPLAZAR POR UNA VISUAL
+      console.println("Perdiste") // TODO: REEMPLAZAR POR UNA VISUAL
+      game.schedule(2000, {   jugador.apuesta(0)return self.reinciarRonda()})
+      return
+    }
+    
+    if (jugador.tieneBlackjack()) {
+      console.println("Blackjack") // TODO: REEMPLAZAR POR UNA VISUAL
       game.schedule(
         2000,
         { 
-          jugador.apuesta(0)
-          game.removeVisual(textoPuntaje)
-          textoPuntaje.removeVisual()
-          jugador.limpiarMano()
-          self.mostrarDineroDisponible()
-          self.mostrarApuesta()
-          estaEnJuego = false
-          puedeJugarJugador = false
+          jugador.ganarDinero(jugador.apuesta() * 2.5)
+          return self.reinciarRonda()
         }
       )
+      return
     }
+    
+    if (crupier.puntaje() > 21) {
+      console.println("Ganaste") // TODO: REEMPLAZAR POR UNA VISUAL
+      game.schedule(
+        2000,
+        { 
+          jugador.ganarDinero(jugador.apuesta() * 2)
+          return self.reinciarRonda()
+        }
+      )
+    } else {
+      if (jugador.puntaje() > crupier.puntaje()) {
+        console.println("Ganaste") // TODO: REEMPLAZAR POR UNA VISUAL
+        game.schedule(
+          2000,
+          { 
+            jugador.ganarDinero(jugador.apuesta() * 2)
+            return self.reinciarRonda()
+          }
+        )
+      } else {
+        if (jugador.puntaje() == crupier.puntaje()) {
+          console.println("Empate") // TODO: REEMPLAZAR POR UNA VISUAL
+          game.schedule(
+            2000,
+            { 
+              jugador.ganarDinero(0)
+              return self.reinciarRonda()
+            }
+          )
+        } else {
+          console.println("Perdiste") // TODO: REEMPLAZAR POR UNA VISUAL
+          game.schedule(
+            2000,
+            { 
+              jugador.ganarDinero(0)
+              return self.reinciarRonda()
+            }
+          )
+        }
+      }
+    }
+    return
+  }
+  
+  method reinciarRonda() {
+    textoPuntajeJugador.removeVisual()
+    textoPuntajeCrupier.removeVisual()
+    jugador.apuesta(0)
+    jugador.limpiarMano()
+    crupier.limpiarMano()
+    self.mostrarDineroDisponible()
+    self.mostrarApuesta()
+    estaEnJuego = false
+    puedeJugarJugador = false
   }
   
   method iniciarRonda() {
@@ -127,8 +210,10 @@ object juego {
       return
     }
     estaEnJuego = true
-    game.addVisual(textoPuntaje)
-    textoPuntaje.setNumero(jugador.puntaje())
+    textoPuntajeJugador.addVisualTitulo()
+    textoPuntajeCrupier.addVisualTitulo()
+    textoPuntajeJugador.setNumero(jugador.puntaje())
+    textoPuntajeCrupier.setNumero(crupier.puntaje())
     game.schedule(1000, { self.repartirCartaJugador() })
     game.schedule(2000, { self.repartirCartaCrupier() })
     game.schedule(3000, { self.repartirCartaJugador() })
@@ -141,7 +226,7 @@ object juego {
     game.start()
     game.height(100)
     game.width(140)
-    game.boardGround("fondo.png") // game.addVisual(carta)
+    game.boardGround("fondo.png")
     textoDineroDisponible.addVisualTitulo()
     textoApuesta.addVisualTitulo()
     game.addVisual(textoBotones)
@@ -153,6 +238,7 @@ object juego {
     keyboard.down().onPressDo({ self.modificarApuesta(-5) })
     keyboard.enter().onPressDo({ self.iniciarRonda() })
     keyboard.h().onPressDo({ self.hitCard() })
+    keyboard.s().onPressDo({ self.standCard() })
     
     game.addVisual(mazoVisual)
   }

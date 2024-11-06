@@ -28,7 +28,8 @@ class TextoConNumeros {
     numeros.text(dinero)
   }
   
-  method removeVisualNumeros() {
+  method removeVisual() {
+    game.removeVisual(imagen)
     numeros.removeAllVisuals()
   }
   
