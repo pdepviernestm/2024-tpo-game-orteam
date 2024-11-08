@@ -37,6 +37,26 @@ object juego {
     position = game.at(115, 50),
     image = "botones.png"
   )
+  const imagenPerdiste = new ImagenClase(
+    position = game.at(50, 50),
+    image = "perdiste.png"
+  )
+  const imagenGanaste = new ImagenClase(
+    position = game.at(50, 50),
+    image = "ganaste.png"
+  )
+  const imagenBlackjack = new ImagenClase(
+    position = game.at(50, 50),
+    image = "blackjack.png"
+  )
+  const imagenEmpate = new ImagenClase(
+    position = game.at(50, 50),
+    image = "empate.png"
+  )
+  const gameOver = new ImagenClase(
+    position = game.at(50, 50),
+    image = "sinfondos.png"
+  )
   
   method repartirCarta(persona) {
     persona.sacarCarta(mazoCartas)
@@ -106,9 +126,21 @@ object juego {
     }
     puedeJugarJugador = false
     self.repartirCartaJugador()
-    self.chequearMano()
+    if (self.chequearManoHit()) {
+      return
+    }
     puedeJugarJugador = true
     return
+  }
+  
+  method darleTodoAlCrupier() {
+    game.schedule(6500, { self.chequearMano() })
+    (1 .. 6).forEach(
+      { i => game.schedule(
+          i * 1000,
+          { if (crupier.puntaje() < 17) self.repartirCartaCrupier() }
+        ) }
+    )
   }
   
   method standCard() {
@@ -116,75 +148,83 @@ object juego {
       return
     }
     puedeJugarJugador = false
-    
-    game.schedule(6500, { self.chequearMano() })
-    (1 .. 6).forEach(
-      { i => game.schedule(
-          (i + 1) * 1000,
-          { if (crupier.puntaje() < 17) self.repartirCartaCrupier() }
-        ) }
-    )
-    
-    
+    self.darleTodoAlCrupier()
     
     return
   }
   
-  method chequearMano() {
+  method chequearManoHit() {
     if (jugador.puntaje() > 21) {
-      console.println("Perdiste") // TODO: REEMPLAZAR POR UNA VISUAL
-      game.schedule(2000, {   jugador.apuesta(0)return self.reinciarRonda()})
-      return
+      game.addVisual(imagenPerdiste)
+      console.println("Perdiste")
+      game.schedule(2000, { self.reiniciarRonda() })
+    } else {
+      self.chequear21()
     }
-    
+    return jugador.puntaje() >= 21
+  }
+  
+  method chequear21() {
+    if (jugador.puntaje() == 21) self.standCard()
+    return jugador.puntaje() == 21
+  }
+  
+  method chequearManoBlackjack() {
     if (jugador.tieneBlackjack()) {
-      console.println("Blackjack") // TODO: REEMPLAZAR POR UNA VISUAL
+      game.addVisual(imagenBlackjack)
+      console.println("Blackjack")
       game.schedule(
         2000,
         { 
           jugador.ganarDinero(jugador.apuesta() * 2.5)
-          return self.reinciarRonda()
+          return self.reiniciarRonda()
         }
       )
-      return
     }
-    
+    return jugador.tieneBlackjack()
+  }
+  
+  method chequearMano() {
     if (crupier.puntaje() > 21) {
-      console.println("Ganaste") // TODO: REEMPLAZAR POR UNA VISUAL
+      game.addVisual(imagenGanaste)
+      console.println("Ganaste")
       game.schedule(
         2000,
         { 
           jugador.ganarDinero(jugador.apuesta() * 2)
-          return self.reinciarRonda()
+          return self.reiniciarRonda()
         }
       )
     } else {
       if (jugador.puntaje() > crupier.puntaje()) {
-        console.println("Ganaste") // TODO: REEMPLAZAR POR UNA VISUAL
+        game.addVisual(imagenGanaste)
+        console.println("Ganaste")
         game.schedule(
           2000,
           { 
             jugador.ganarDinero(jugador.apuesta() * 2)
-            return self.reinciarRonda()
+            return self.reiniciarRonda()
           }
         )
       } else {
         if (jugador.puntaje() == crupier.puntaje()) {
-          console.println("Empate") // TODO: REEMPLAZAR POR UNA VISUAL
+          game.addVisual(imagenEmpate)
+          console.println("Empate")
           game.schedule(
             2000,
             { 
-              jugador.ganarDinero(0)
-              return self.reinciarRonda()
+              jugador.ganarDinero(jugador.apuesta())
+              return self.reiniciarRonda()
             }
           )
         } else {
-          console.println("Perdiste") // TODO: REEMPLAZAR POR UNA VISUAL
+          game.addVisual(imagenPerdiste)
+          console.println("Perdiste")
           game.schedule(
             2000,
             { 
               jugador.ganarDinero(0)
-              return self.reinciarRonda()
+              return self.reiniciarRonda()
             }
           )
         }
@@ -193,9 +233,22 @@ object juego {
     return
   }
   
-  method reinciarRonda() {
+  method terminarJuego() {
+    game.removeVisual(textoBotones)
+    game.removeVisual(mazoVisual)
+    textoApuesta.removeVisual()
+    textoDineroDisponible.removeVisual()
+    
+    game.schedule(500, { game.addVisual(gameOver) })
+  }
+  
+  method reiniciarRonda() {
     textoPuntajeJugador.removeVisual()
     textoPuntajeCrupier.removeVisual()
+    game.removeVisual(imagenPerdiste)
+    game.removeVisual(imagenBlackjack)
+    game.removeVisual(imagenEmpate)
+    game.removeVisual(imagenGanaste)
     jugador.apuesta(0)
     jugador.limpiarMano()
     crupier.limpiarMano()
@@ -203,6 +256,8 @@ object juego {
     self.mostrarApuesta()
     estaEnJuego = false
     puedeJugarJugador = false
+    
+    if (jugador.dinero() == 0) self.terminarJuego()
   }
   
   method iniciarRonda() {
@@ -217,6 +272,11 @@ object juego {
     game.schedule(1000, { self.repartirCartaJugador() })
     game.schedule(2000, { self.repartirCartaCrupier() })
     game.schedule(3000, { self.repartirCartaJugador() })
+    
+    if (self.chequearManoBlackjack()) {
+      return
+    }
+    
     puedeJugarJugador = true
     
     return

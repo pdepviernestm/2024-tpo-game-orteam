@@ -60,7 +60,7 @@ class Persona {
 }
 
 class Jugador inherits Persona {
-  var property dinero = 250
+  var property dinero = 50
   var property splits = maxSplits
   var property apuesta = 0
   
@@ -82,7 +82,10 @@ class Jugador inherits Persona {
     dinero += cantidad
   }
   
-  method tieneBlackjack() = (mano.size() == 2) && (self.puntaje() == 21)
+  method tieneBlackjack() {
+    console.println((("Puntaje: " + self.puntaje()) + ", ") + mano.size())
+    return (mano.size() == 2) && (self.puntaje() == 21)
+  }
 }
 
 class Crupier inherits Persona {
