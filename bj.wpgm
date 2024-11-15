@@ -1,0 +1,313 @@
+// https://docs.google.com/presentation/d/1G0Ujf5W3e0Ba-B7faKWrZMM0FRP3w1zLvRGFBjNvBr4/edit?usp=sharing
+
+import persona.*
+import textos.*
+import wollok.game.*
+import carta.*
+import constants.*
+
+object juego {
+  var property mazoCartas = []
+  const palos = ["corazon", "diamante", "pica", "trebol"]
+  const property crupier = new Crupier(posicion = new Posicion(x = 50, y = 75))
+  const property jugador = new Jugador(posicion = new Posicion(x = 50, y = 25))
+  var property turnoJugador = 0
+  var property turnoCrupier = false
+  var property estaEnJuego = false
+  var property puedeJugarJugador = false
+  const textoApuesta = new TextoConNumeros(
+    positionTexto = game.at(5, 50),
+    positionNumeros = game.at(17, 52),
+    image = "apuesta.png"
+  )
+  const textoPuntajeJugador = new TextoConNumeros(
+    positionTexto = game.at(20, 25),
+    positionNumeros = game.at(32, 25),
+    image = "puntaje.png"
+  )
+  const textoPuntajeCrupier = new TextoConNumeros(
+    positionTexto = game.at(20, 75),
+    positionNumeros = game.at(32, 75),
+    image = "puntaje.png"
+  )
+  const textoDineroDisponible = new TextoConNumeros(
+    positionTexto = game.at(35, 5),
+    positionNumeros = game.at(63, 7),
+    image = "dinerodisponible.png"
+  )
+  const textoBotones = new ImagenClase(
+    position = game.at(115, 50),
+    image = "botones.png"
+  )
+  const imagenPerdiste = new ImagenClase(
+    position = game.at(50, 50),
+    image = "perdiste.png"
+  )
+  const imagenGanaste = new ImagenClase(
+    position = game.at(50, 50),
+    image = "ganaste.png"
+  )
+  const imagenBlackjack = new ImagenClase(
+    position = game.at(50, 50),
+    image = "blackjack.png"
+  )
+  const imagenEmpate = new ImagenClase(
+    position = game.at(50, 50),
+    image = "empate.png"
+  )
+  const gameOver = new ImagenClase(
+    position = game.at(50, 50),
+    image = "sinfondos.png"
+  )
+  
+  method repartirCarta(persona) {
+    persona.sacarCarta(mazoCartas)
+    mazoCartas = mazoCartas.drop(1)
+  }
+  
+  method repartirCartaCrupier() {
+    self.repartirCarta(crupier)
+    textoPuntajeCrupier.setNumero(crupier.puntaje())
+  }
+  
+  method repartirCartaJugador() {
+    self.repartirCarta(jugador)
+    textoPuntajeJugador.setNumero(jugador.puntaje())
+  }
+  
+  method generarValores() {
+    valores.put("as", 1)
+    valores.put("j", 10)
+    valores.put("q", 10)
+    valores.put("k", 10)
+    
+    (2 .. 10).forEach({ i => valores.put(i, i) })
+  }
+  
+  method agregarMazoAlGeneral() {
+    palos.forEach(
+      { palo => valores.keys().forEach(
+          { numero => mazoCartas.add(new Carta(palo = palo, numero = numero)) }
+        ) }
+    )
+  }
+  
+  method generarMazo() {
+    8.times({ _ => self.agregarMazoAlGeneral() })
+    
+    mazoCartas.randomize()
+  }
+  
+  method mostrarDineroDisponible() {
+    textoDineroDisponible.setNumero(jugador.dinero())
+  }
+  
+  method mostrarApuesta() {
+    textoApuesta.setNumero(jugador.apuesta())
+  }
+  
+  method empezarRonda() {
+    // primero tienen que apostar todos los jugadores.
+    self.mostrarDineroDisponible()
+    self.mostrarApuesta()
+  }
+  
+  method modificarApuesta(cantidad) {
+    if (estaEnJuego) {
+      return
+    }
+    jugador.aumentarApuesta(cantidad)
+    self.mostrarDineroDisponible()
+    self.mostrarApuesta()
+    return
+  }
+  
+  method hitCard() {
+    if (!puedeJugarJugador) {
+      return
+    }
+    puedeJugarJugador = false
+    self.repartirCartaJugador()
+    if (self.chequearManoHit()) {
+      return
+    }
+    puedeJugarJugador = true
+    return
+  }
+  
+  method darleTodoAlCrupier() {
+    game.schedule(6500, { self.chequearMano() })
+    (1 .. 6).forEach(
+      { i => game.schedule(
+          i * 1000,
+          { if (crupier.puntaje() < 17) self.repartirCartaCrupier() }
+        ) }
+    )
+  }
+  
+  method standCard() {
+    if (!puedeJugarJugador) {
+      return
+    }
+    puedeJugarJugador = false
+    self.darleTodoAlCrupier()
+    
+    return
+  }
+  
+  method chequearManoHit() {
+    if (jugador.puntaje() > 21) {
+      game.addVisual(imagenPerdiste)
+      console.println("Perdiste")
+      game.schedule(2000, { self.reiniciarRonda() })
+    } else {
+      self.chequear21()
+    }
+    return jugador.puntaje() >= 21
+  }
+  
+  method chequear21() {
+    if (jugador.puntaje() == 21) self.standCard()
+    return jugador.puntaje() == 21
+  }
+  
+  method chequearManoBlackjack() {
+    if (jugador.tieneBlackjack()) {
+      game.addVisual(imagenBlackjack)
+      console.println("Blackjack")
+      game.schedule(
+        2000,
+        { 
+          jugador.ganarDinero(jugador.apuesta() * 2.5)
+          return self.reiniciarRonda()
+        }
+      )
+    }
+    return jugador.tieneBlackjack()
+  }
+  
+  method chequearMano() {
+    if (crupier.puntaje() > 21) {
+      game.addVisual(imagenGanaste)
+      console.println("Ganaste")
+      game.schedule(
+        2000,
+        { 
+          jugador.ganarDinero(jugador.apuesta() * 2)
+          return self.reiniciarRonda()
+        }
+      )
+    } else {
+      if (jugador.puntaje() > crupier.puntaje()) {
+        game.addVisual(imagenGanaste)
+        console.println("Ganaste")
+        game.schedule(
+          2000,
+          { 
+            jugador.ganarDinero(jugador.apuesta() * 2)
+            return self.reiniciarRonda()
+          }
+        )
+      } else {
+        if (jugador.puntaje() == crupier.puntaje()) {
+          game.addVisual(imagenEmpate)
+          console.println("Empate")
+          game.schedule(
+            2000,
+            { 
+              jugador.ganarDinero(jugador.apuesta())
+              return self.reiniciarRonda()
+            }
+          )
+        } else {
+          game.addVisual(imagenPerdiste)
+          console.println("Perdiste")
+          game.schedule(
+            2000,
+            { 
+              jugador.ganarDinero(0)
+              return self.reiniciarRonda()
+            }
+          )
+        }
+      }
+    }
+    return
+  }
+  
+  method terminarJuego() {
+    game.removeVisual(textoBotones)
+    game.removeVisual(mazoVisual)
+    textoApuesta.removeVisual()
+    textoDineroDisponible.removeVisual()
+    
+    game.schedule(500, { game.addVisual(gameOver) })
+  }
+  
+  method reiniciarRonda() {
+    textoPuntajeJugador.removeVisual()
+    textoPuntajeCrupier.removeVisual()
+    game.removeVisual(imagenPerdiste)
+    game.removeVisual(imagenBlackjack)
+    game.removeVisual(imagenEmpate)
+    game.removeVisual(imagenGanaste)
+    jugador.apuesta(0)
+    jugador.limpiarMano()
+    crupier.limpiarMano()
+    self.mostrarDineroDisponible()
+    self.mostrarApuesta()
+    estaEnJuego = false
+    puedeJugarJugador = false
+    
+    if (jugador.dinero() == 0) self.terminarJuego()
+  }
+  
+  method iniciarRonda() {
+    if ((jugador.apuesta() == 0) || estaEnJuego) {
+      return
+    }
+    estaEnJuego = true
+    textoPuntajeJugador.addVisualTitulo()
+    textoPuntajeCrupier.addVisualTitulo()
+    textoPuntajeJugador.setNumero(jugador.puntaje())
+    textoPuntajeCrupier.setNumero(crupier.puntaje())
+    game.schedule(1000, { self.repartirCartaJugador() })
+    game.schedule(2000, { self.repartirCartaCrupier() })
+    game.schedule(3000, { self.repartirCartaJugador() })
+    
+    if (self.chequearManoBlackjack()) {
+      return
+    }
+    
+    puedeJugarJugador = true
+    
+    return
+  }
+  
+  method iniciar() {
+    game.start()
+    game.height(100)
+    game.width(140)
+    game.boardGround("fondo.png")
+    textoDineroDisponible.addVisualTitulo()
+    textoApuesta.addVisualTitulo()
+    game.addVisual(textoBotones)
+    self.generarValores()
+    self.generarMazo()
+    
+    
+    keyboard.up().onPressDo({ self.modificarApuesta(5) })
+    keyboard.down().onPressDo({ self.modificarApuesta(-5) })
+    keyboard.enter().onPressDo({ self.iniciarRonda() })
+    keyboard.h().onPressDo({ self.hitCard() })
+    keyboard.s().onPressDo({ self.standCard() })
+    
+    game.addVisual(mazoVisual)
+  }
+}
+
+program prueba {
+  juego.iniciar()
+  
+  juego.empezarRonda()
+}
